@@ -1,0 +1,15 @@
+node_modules/
+__pycache__/
+*.pyc
+.venv/
+config/plugin.json
+.env*
+data/
+*.log
+*.db
+*.sqlite*
+*.pem
+*.key
+dist/
+coverage/
+local-test-report.json

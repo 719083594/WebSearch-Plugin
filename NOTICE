@@ -1,0 +1,6 @@
+Required Notice: Copyright (c) 2026 719083594
+Required Notice: Licensed under PolyForm Noncommercial License 1.0.0.
+
+This project contains independently maintained search plugin, parser and
+renderer code. Yunzai frameworks, Chaite, Python, Pillow and Chinese fonts
+retain their own licenses. External dependencies are not bundled here.

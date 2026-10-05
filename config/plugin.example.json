@@ -1,0 +1,9 @@
+{
+  "pythonPath": "python3",
+  "fontPath": "",
+  "timeoutMs": 26000,
+  "maxResults": 5,
+  "masterOnly": false,
+  "cooldownMs": 5000,
+  "timeZone": "Asia/Shanghai"
+}

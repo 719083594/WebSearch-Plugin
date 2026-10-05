@@ -1,0 +1,20 @@
+name: Tests
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: ['22', '24']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends python3-pil fonts-wqy-microhei
+      - run: node --test tests/*.test.mjs
+      - run: /usr/bin/python3 tests/document_test.py
+      - run: /usr/bin/python3 -m py_compile renderer/document.py scripts/demo.py
+      - run: node scripts/diagnose.mjs
