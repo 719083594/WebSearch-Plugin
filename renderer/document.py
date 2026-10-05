@@ -111,11 +111,11 @@ def timestamp(value,zone):
     except ZoneInfoNotFoundError:
         local=moment.astimezone(datetime.timezone(datetime.timedelta(hours=8)) if zone=='Asia/Shanghai' else datetime.timezone.utc)
         label=zone if zone=='Asia/Shanghai' else 'UTC'
-    return local.strftime('%Y/%m/%d %H:%M:%S')+' '+label
+    return local.strftime('%Y/%m/%d %H:%M:%S')+' '+('北京时间' if label=='Asia/Shanghai' else '协调世界时（UTC）' if label=='UTC' else label)
 def render(data,results):
     from PIL import Image,ImageDraw,ImageFont
     font_path=find_font(data.get('fontPath',''))
-    if not font_path:raise ValueError('CJK font is missing')
+    if not font_path:raise ValueError('未找到中文字体，请配置字体路径')
     title=ImageFont.truetype(font_path,30);heading=ImageFont.truetype(font_path,23);body=ImageFont.truetype(font_path,19);small=ImageFont.truetype(font_path,16)
     probe=ImageDraw.Draw(Image.new('RGB',(1,1)));width=980
     cards=[]
@@ -125,14 +125,16 @@ def render(data,results):
     query_lines=wrapped(probe,'联网搜索：'+data['query'],title,width)
     header=len(query_lines)*37+80
     height=header+sum(size+14 for _,size in cards)+72
-    if height>3400:raise ValueError('Image is too tall')
+    if height>3400:raise ValueError('搜索结果图片过长，无法安全生成')
     image=Image.new('RGB',(1080,height),'#f2f6f4');draw=ImageDraw.Draw(image);y=25
     def write(lines,font,color):
         nonlocal y
         for line in lines:draw.text((40,y),line,font=font,fill=color);y+=font.size+7
     write(query_lines,title,'#183c2b')
     time=timestamp(data['searchedAt'],data.get('timeZone','Asia/Shanghai'))
-    write([('示例时间：' if data.get('synthetic') else '搜索时间：')+time+(' · 离线合成示例' if data.get('synthetic') else ' · '+str(data.get('engineLabel',data.get('engine','Bing')))+' · 每次重新联网')],small,'#53685d');y+=18
+    engine=data.get('engineLabel',data.get('engine','Bing'))
+    engine={'Bing':'必应','bing':'必应','360':'360 搜索','Sogou':'搜狗','sogou':'搜狗'}.get(engine,engine)
+    write([('示例时间：' if data.get('synthetic') else '搜索时间：')+time+(' · 离线合成示例' if data.get('synthetic') else ' · '+str(engine)+' · 每次重新联网')],small,'#53685d');y+=18
     for lines,size in cards:
         top=y;draw.rounded_rectangle((25,top,1055,top+size),radius=12,fill='white');y+=12
         for content,font,color in lines:write(content,font,color)
@@ -153,7 +155,7 @@ def process(data):
 def main():
     try:
         raw=sys.stdin.read(4000001)
-        if len(raw)>4000000:raise ValueError('Input too large')
+        if len(raw)>4000000:raise ValueError('搜索文档输入过大')
         print(json.dumps(process(json.loads(raw)),ensure_ascii=False))
-    except (ValueError,KeyError,TypeError):print(json.dumps({'error':'Invalid search document input'}))
+    except (ValueError,KeyError,TypeError):print(json.dumps({'error':'搜索文档输入无效'}))
 if __name__=='__main__':main()

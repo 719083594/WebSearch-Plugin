@@ -8,7 +8,7 @@ export {readConfig, normalizeConfig, defaults, localConfigPath} from './lib/conf
 export {formatText} from './lib/format.mjs'
 export {assessRelevance,queryTerms} from './lib/relevance.mjs'
 export {engineOrder,searchAddress} from './lib/engines.mjs'
-export const version = '2.1.0'
+export const version = '2.1.1'
 
 export function createWebSearch(options = {}) {
   const config = options.config === undefined ? readConfig(options.configPath) : normalizeConfig(options.config)

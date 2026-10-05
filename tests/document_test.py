@@ -25,7 +25,7 @@ class DocumentTests(unittest.TestCase):
         from PIL import Image
         with Image.open(io.BytesIO(b)) as image:self.assertEqual(image.format,'JPEG');self.assertEqual(image.width,1080);self.assertGreater(image.height,400)
     def test_beijing_time_and_caps(self):
-        self.assertEqual(doc.timestamp('2026-01-01T00:00:00Z','Asia/Shanghai'),'2026/01/01 08:00:00 Asia/Shanghai')
+        self.assertEqual(doc.timestamp('2026-01-01T00:00:00Z','Asia/Shanghai'),'2026/01/01 08:00:00 北京时间')
         r=doc.parse_results(row('字'*500,'https://example.org/','字'*1000),'https://cn.bing.com/search?q=x')
         self.assertEqual(len(r[0]['title']),180);self.assertEqual(len(r[0]['snippet']),350)
     def test_png_output_is_real_png(self):

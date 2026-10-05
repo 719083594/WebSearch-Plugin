@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "title": "WebSearch-Plugin",
-  "description": "通用联网搜索，提供Node API、CLI及云崽桥接；附来源和搜索时间。",
+  "title": "联网搜索",
+  "description": "通用联网搜索，提供程序接口、命令行和云崽桥接；附来源与搜索时间。",
   "homepage": "https://github.com/719083594/WebSearch-Plugin",
   "commands": [
     "#搜索 关键词",
@@ -20,12 +20,17 @@
       "fields": [
         {
           "path": "provider",
-          "label": "搜索后端（auto、bing、360、sogou或endpoint）",
+          "label": "搜索后端（auto 自动 / bing 必应 / 360 搜索 / sogou 搜狗 / endpoint 认证服务）",
           "type": "string"
         },
         {
           "path": "endpoint",
-          "label": "可选认证搜索服务地址（密钥请在本地文件配置）",
+          "label": "认证搜索服务地址（仅认证服务后端需要）",
+          "type": "string"
+        },
+        {
+          "path": "secret",
+          "label": "认证搜索服务密钥（本地保存，界面遮罩）",
           "type": "string"
         },
         {

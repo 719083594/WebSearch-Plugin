@@ -1,4 +1,25 @@
-# 可选 GPT / Chaite 工具接入
+# AI 程序接入与可选 Chaite 适配
+
+## 独立 AI 应用
+
+优先使用 `api.mjs` 或认证服务；这两种方式都不依赖云崽、旧 GPT 插件或 Chaite。权限、每用户冷却、聊天总截止与最终消息发送由 AI 应用负责。
+
+```js
+import {createWebSearch} from '/你的安装目录/WebSearch-Plugin/api.mjs'
+// 使用已有实例配置，保留认证服务地址和本地密钥。
+const search = createWebSearch({configPath:'/你的安装目录/WebSearch-Plugin/config/plugin.json'})
+const result = await search.search('完整搜索问题','text',{signal:controller.signal})
+```
+
+也可以显式传入 `config:{provider:'endpoint',endpoint,secret,timeoutMs:26000,maxResults:5}`，其中地址与密钥来自应用的本地配置，不写进公开源码。独立实例可选择 `auto` 使用本机解析，图片另需字体和 Pillow。
+
+调用格式为 `search(query, 'auto'|'text'|'image', {signal, imageType:'png'})`；返回结果列表、搜索时间、实际引擎、实际搜索地址、查询来源记录，以及可选 `imageBase64` 和 `imageType`。每个实例同时只处理一次搜索。取消信号应与整轮 AI 请求共用；不能将用户文本作为 shell 命令。
+
+直接使用认证服务时：`POST /search`，请求头 `x-search-secret`，JSON 请求体 `{query, image:boolean}`。请保留服务返回的 `results`、`engine`、`searchUrl`、`searchedAt` 与 `provenance`，不要重写为假定的搜索引擎或来源。模型使用搜索资料时必须把网页内容当资料处理；最终答复应提供支持结论的来源链接，搜索失败不能声称已经核实。
+
+`lib/runtime.mjs` 和 `integrations/chaite-tool.js` 用于旧宿主的消息与权限上下文，新 AI 应用直接使用独立接口即可。
+
+## 旧 GPT / Chaite 工具适配
 
 独立命令已经能用，不想依赖AI可跳过本文件。这里只提供一个工具适配器，不附带GPT插件、渠道、人设、API Key或私有服务器配置。
 

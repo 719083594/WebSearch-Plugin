@@ -14,7 +14,7 @@ const sample={ok:true,query:'例子',searchedAt:'2026-01-01T00:00:00Z',searchUrl
 test('public root import is framework-free and portable from an unrelated cwd',async()=>{
   const temporary=await fs.mkdtemp(path.join(os.tmpdir(),'websearch-import-'))
   try {
-    const result=spawnSync(process.execPath,['--input-type=module','-e',`const api=await import(${JSON.stringify(pathToFileURL(path.join(root,'index.js')).href)}); if(api.version!=='2.1.0'||typeof api.createWebSearch!=='function'||Object.keys(api.apps).length) process.exit(1)`],{cwd:temporary,encoding:'utf8'})
+    const result=spawnSync(process.execPath,['--input-type=module','-e',`const api=await import(${JSON.stringify(pathToFileURL(path.join(root,'index.js')).href)}); if(api.version!==${JSON.stringify(version)}||typeof api.createWebSearch!=='function'||Object.keys(api.apps).length) process.exit(1)`],{cwd:temporary,encoding:'utf8'})
     assert.equal(result.status,0,result.stderr)
     const cli=spawnSync(process.execPath,[path.join(root,'cli.mjs'),'--version'],{cwd:temporary,encoding:'utf8'})
     assert.equal(cli.status,0,cli.stderr);assert.equal(cli.stdout.trim(),version)

@@ -4,13 +4,13 @@ import path from 'node:path'
 import {fileURLToPath} from 'node:url'
 import {createWebSearch, formatText, version} from './api.mjs'
 
-const help = `WebSearch-Plugin ${version}
+const help = `联网搜索（WebSearch-Plugin）${version}
 用法：
   web-search search "关键词" [--format json|text|png|image] [--output 结果.png] [--config 配置.json]
   web-search diagnose [--network] [--config 配置.json]
   web-search --help | --version
 JSON为默认输出；png/image需要--output。image保留后端原始PNG/JPEG。图片依赖缺失时输出文字，并在stderr说明。
-默认auto：含汉字优先360/搜狗，其他优先Bing/360，每次最多两个源；也可配置固定源或认证endpoint。
+自动模式（auto）：含汉字优先360/搜狗，其他优先必应/360，每次最多两个源；也可配置固定源或认证服务（endpoint）。
 diagnose默认只检查本机，--network才发起联网搜索。`
 
 export async function runCli(argv, {stdout = value => process.stdout.write(value), stderr = value => process.stderr.write(value), writeFile = fs.writeFile, createService = createWebSearch} = {}) {
@@ -52,7 +52,7 @@ export async function runCli(argv, {stdout = value => process.stdout.write(value
       stdout(formatText(result,service.config)+'\n')
     }
     return 0
-  } catch (error) {stderr('WebSearch-Plugin：'+error.message+'\n'); return 1}
+  } catch (error) {stderr('联网搜索：'+error.message+'\n'); return 1}
 }
 
 if (process.argv[1] && path.resolve(process.argv[1])===fileURLToPath(import.meta.url)) process.exitCode=await runCli(process.argv.slice(2))

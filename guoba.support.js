@@ -8,7 +8,7 @@ export function supportGuoba() {
   return {
     pluginInfo: {
       name: path.basename(directory).toLowerCase(),
-      title: 'WebSearch-Plugin',
+      title: '联网搜索',
       author: '@719083594',
       authorLink: 'https://github.com/719083594',
       link: 'https://github.com/719083594/WebSearch-Plugin',

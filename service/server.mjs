@@ -44,10 +44,10 @@ function bodyJSON(req,signal) {
 
 /** Factory returns an unbound http.Server; inject searchService for tests/adapters. */
 export function createSearchServer({secret=process.env.SEARCH_SECRET,searchService,config=defaultConfig,renderer='web-result-card',now=Date.now}={}) {
-  if(typeof secret!=='string'||!secret.length||secret.length>4096||!/^[\x20-\x7e]+$/.test(secret))throw new Error('SEARCH_SECRET must be a nonempty ASCII secret (max 4096 characters)')
+  if(typeof secret!=='string'||!secret.length||secret.length>4096||!/^[\x20-\x7e]+$/.test(secret))throw new Error('SEARCH_SECRET 必须为非空的 ASCII 认证密钥（最多 4096 个字符）')
   const expected=digest(secret)
   const service=searchService||createWebSearch({config})
-  if(typeof service.search!=='function')throw new Error('searchService.search is required')
+  if(typeof service.search!=='function')throw new Error('搜索服务必须提供 search 方法')
   let busy=false,closing=false,active
   const handler=async(req,res)=>{
     const route=req.url?.split('?',1)[0]
@@ -76,7 +76,7 @@ export function createSearchServer({secret=process.env.SEARCH_SECRET,searchServi
       if(input.image!==undefined&&typeof input.image!=='boolean')throw new RequestError(400,'image 必须是布尔值。')
       const result=await service.search(query,input.image===true?'image':'text',{signal:controller.signal,imageType:'png'})
       if(controller.signal.aborted)throw new RequestError(closing?503:499,'请求已取消。')
-      if(!result||!Array.isArray(result.results)||!result.results.length)throw new Error('Invalid core result')
+      if(!result||!Array.isArray(result.results)||!result.results.length)throw new Error('搜索核心未返回有效结果')
       // Preserve the actual engine, URL, provenance and source-quality metadata.
       const output={...result,ok:true,query:result.query||query,cached:false,durationMs:Math.max(0,now()-started)}
       if(typeof output.answerText!=='string')output.answerText=formatText(output,{timeZone:service.config?.timeZone||config.timeZone||'Asia/Shanghai'})
@@ -105,14 +105,14 @@ export function createSearchServer({secret=process.env.SEARCH_SECRET,searchServi
 
 async function main(){
   const port=Number(process.env.SEARCH_PORT||3080)
-  if(!Number.isInteger(port)||port<1||port>65535)throw new Error('SEARCH_PORT must be 1..65535')
+  if(!Number.isInteger(port)||port<1||port>65535)throw new Error('SEARCH_PORT 必须为 1–65535 的整数端口')
   const server=createSearchServer()
-  server.on('error',()=>{console.error('Search service could not start.');process.exitCode=1})
-  server.listen(port,'0.0.0.0',()=>console.log('Search service listening on port '+port))
+  server.on('error',()=>{console.error('搜索服务无法启动，请检查端口和运行环境。');process.exitCode=1})
+  server.listen(port,'0.0.0.0',()=>console.log('搜索服务已启动，监听端口：'+port))
   let stopping=false
   const stop=()=>{if(stopping)return;stopping=true;void server.shutdown().then(()=>{process.exitCode=0})}
   process.once('SIGTERM',stop);process.once('SIGINT',stop)
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
-  main().catch(()=>{console.error('Search service configuration is invalid; set SEARCH_SECRET and a valid SEARCH_PORT.');process.exitCode=1})
+  main().catch(()=>{console.error('搜索服务配置无效，请设置 SEARCH_SECRET 和有效的 SEARCH_PORT。');process.exitCode=1})
 }
