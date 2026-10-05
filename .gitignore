@@ -3,6 +3,7 @@ __pycache__/
 *.pyc
 .venv/
 config/plugin.json
+config/integration.json
 .env*
 data/
 *.log

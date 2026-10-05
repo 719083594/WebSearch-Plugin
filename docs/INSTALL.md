@@ -1,103 +1,103 @@
-# 完整安装和故障排查
+# 安装、配置与迁移
 
-## 必需组件
+## 独立安装
 
-| 组件 | 是否必需 | 获取方式 |
+项目可放任意目录，安装器根据自身文件定位项目，不依赖cwd或机器人：
+
+```bash
+git clone https://github.com/719083594/WebSearch-Plugin.git
+node WebSearch-Plugin/scripts/install.mjs
+node WebSearch-Plugin/cli.mjs search "测试关键词" --format json
+```
+
+| 组件 | 默认bing后端 | 认证endpoint后端 |
 | --- | --- | --- |
-| 云崽V3插件接口兼容框架 | 必需 | 现有机器人 |
-| Node.js 18.17+ | 必需 | 框架运行环境 |
-| Python 3.10+ | 必需 | 操作系统安装，或安装器显式安装 |
-| `renderer/document.py` 与 `lib/` | 必需 | 完整发布包已包含 |
-| Pillow | 图片必需 | Debian/Ubuntu `python3-pil`，其他系统 `python -m pip install -r requirements.txt` |
-| 中文字体 | 图片必需 | `fonts-wqy-microhei`、Noto CJK，Windows自动识别微软雅黑/黑体 |
-| AI / API Key / New API | 不需要 | 可选适配器才涉及你自己的模型 |
-| Chromium / HTTP搜索服务器 | 不需要 | 本机按需进程，不打开端口 |
+| Node.js 18.17+ | 必需 | 必需 |
+| Python 3.10+ | HTML解析必需 | 不要求本机安装 |
+| Pillow与中文字体 | 图片必需，缺失回退文字 | 图片由既有服务提供 |
+| 云崽/AI/API Key | 不需要 | 不需要；仅使用自己的搜索服务密钥 |
+| 新HTTP端口/守护进程 | 不提供 | 不提供 |
 
-## 原生 Linux
+Debian/Ubuntu自行安装 `python3 python3-pil fonts-wqy-microhei`，或显式用root运行 `node scripts/install.mjs --install-deps`。其他系统安装Python/字体并 `python -m pip install -r requirements.txt`。文字解析不需要Pillow。
 
-在云崽根目录克隆完整插件：
+Windows执行 `node scripts/install.mjs --python python`。不在PATH的Python填可执行文件完整路径，字体默认查找微软雅黑/黑体，也可传--font。只有py启动器时用 `py -3 -c "import sys; print(sys.executable)"` 查路径，不要将 `py -3` 整串作为pythonPath。
+
+## 配置
+
+默认 `config/plugin.json`；旧版参数兼容。独立CLI/安装器可传 `--config 路径`，云崽桥接使用项目内默认配置。
+
+| 字段 | 默认 | 作用 |
+| --- | --- | --- |
+| provider | `bing` | bing本机解析，endpoint认证服务客户端 |
+| endpoint | 空 | 服务基础HTTP(S)地址，不含密码、查询串或片段 |
+| secret | 空 | 服务密钥，只保存本地，不可提交 |
+| pythonPath | Windows python，其余python3 | 可执行文件路径，不带命令参数 |
+| fontPath | 空 | 自动查找中文字体，可指定文件 |
+| timeoutMs | 26000 | 整次上限，1000～30000毫秒 |
+| maxResults | 5 | 1～8条，本机图片卡片最多4条 |
+| masterOnly | false | 云崽/Chaite主人权限；裸API的宿主自己鉴权 |
+| cooldownMs | 5000 | 云崽命令个人冷却，0～600000毫秒 |
+| timeZone | Asia/Shanghai | 文字与本机图片显示时区 |
+
+已有服务配置示例，必须替换占位值，不可提交真实密钥：
+
+```json
+{
+  "provider": "endpoint",
+  "endpoint": "http://127.0.0.1:3080",
+  "secret": "REPLACE_WITH_YOUR_PRIVATE_SECRET",
+  "timeoutMs": 26000,
+  "maxResults": 5,
+  "masterOnly": false,
+  "cooldownMs": 5000,
+  "timeZone": "Asia/Shanghai"
+}
+```
+
+服务约定：POST /search，header x-search-secret，JSON `{query,image}`；返回 `{ok:true,searchedAt,results:[{title,snippet,url}],answerText?,imageBase64?}`。图片接受PNG/JPEG；禁止重定向转发密钥。公网用HTTPS，HTTP只适合可信本地/内网。服务部署、鉴权和生命周期由你维护，本插件不开放搜索端口。
+
+## CLI
 
 ```bash
-git clone https://github.com/719083594/yunzai-web-search.git plugins/yunzai-web-search
-sudo node plugins/yunzai-web-search/scripts/install.mjs --install-deps
+node cli.mjs search "关键词" --format json
+node cli.mjs search "关键词" --format text
+node cli.mjs search "关键词" --format png --output result.png
+node cli.mjs search "关键词" --format image --output result.jpg
+node cli.mjs diagnose
+node cli.mjs diagnose --network
 ```
 
-配置只含路径与偏好，不含密钥，安装器以0644写入，root安装后普通机器人用户也能读取。若希望机器人用户随后修改配置，可改变所属用户，例如：
+JSON为默认；stdout只含结果，提示/错误在stderr。png要求实际PNG，默认本机后端可生成；endpoint返回JPEG时用image保留原图，不会伪装成PNG。image为后端原格式，本机默认为JPEG，请相应选择后缀。缺图回退文字、退出码0并不写图片；参数/查询失败退出码1。diagnose默认不联网、不暴露密钥，--network真实查询一次。CLI每次启动新实例，跨进程限流由宿主管理。
+
+## 云崽桥接
+
+完整目录放 `plugins/WebSearch-Plugin`，不要双层套文件夹，也不能只复制index.js：
 
 ```bash
-sudo chown BOT_USER:BOT_GROUP plugins/yunzai-web-search/config/plugin.json
+node plugins/WebSearch-Plugin/scripts/install.mjs --yunzai-bridge
 ```
 
-将 `BOT_USER`、`BOT_GROUP` 替换为实际机器人用户和组。也可以先用系统包管理器装依赖，再由机器人运行用户生成配置：
+安装器验证实际云崽基类位置，然后生成被忽略的 `config/integration.json`，内容adapter:yunzai。根index仅在标记存在时加载 `integrations/yunzai/index.js`；默认export空apps，避免云崽加载器把通用API当消息插件实例化。核心入口不会改写；api.mjs和CLI即使已启用桥接也始终无框架依赖。
+
+已有配置保留，可直接启用桥接；明确替换配置才用--force-config，python/font/master-only不会静默覆盖。root安装以0644写配置使机器人用户可读；若含密钥，按实际运行用户调整所属用户和目录权限。重启后测#搜索帮助、#搜文和#搜图。停用可传--standalone，写adapter:none并重启；不会停用你自行部署的外部服务。
+
+## Docker
+
+Python/字体及安装器必须在实际机器人容器内，宿主机依赖不代表容器依赖：
 
 ```bash
-sudo apt-get update
-sudo apt-get install -y python3 python3-pil fonts-wqy-microhei
-node plugins/yunzai-web-search/scripts/install.mjs
+docker exec BOT_CONTAINER node /app/plugins/WebSearch-Plugin/scripts/install.mjs --yunzai-bridge
+docker exec BOT_CONTAINER node /app/plugins/WebSearch-Plugin/cli.mjs diagnose
 ```
 
-不要把 Python 文件路径填写成 `python3 --some-option`。自定义 Python/字体示例：
+BOT_CONTAINER和/app是示例，换成实际名称/根目录。Debian/Ubuntu容器可显式root --install-deps；Alpine使用自身包管理器。容器重建可能丢失系统依赖，推荐加入自己的Dockerfile。项目、配置、适配标记应在持久挂载中。endpoint模式沿用原服务，不增加公网端口或Docker socket要求。
 
-```bash
-node plugins/yunzai-web-search/scripts/install.mjs \
-  --python /usr/bin/python3 \
-  --font /usr/share/fonts/truetype/wqy/wqy-microhei.ttc
-```
+## 从1.x迁移
 
-无 sudo、非 Debian/Ubuntu：自行安装 Python；可在虚拟环境安装 Pillow，然后 `--python` 指向虚拟环境 Python。文字模式不需要 Pillow 或字体。
+1. 保留config/plugin.json，将完整目录命名WebSearch-Plugin，origin改为新仓库URL。GitHub改名保留历史，旧URL通常重定向。
+2. 复制原配置；若旧部署是独立browser sidecar代理，复制原endpoint/secret到新config/plugin.json并设provider:endpoint，保留原服务。
+3. 运行--yunzai-bridge，重启，只启用一个相同命令入口。
+4. 更新Chaite原生工具登记源码及utils/tools/web_search.js导入路径，见AI-INTEGRATION。只改磁盘文件不一定更新数据库源码。
+5. 验证后停用旧入口，保留服务认证、聊天保护与其他机器人设置。
 
-## Docker 部署
-
-插件和 Python 脚本都运行在机器人容器里，安装器也要在容器里执行。宿主机装了 Pillow 不代表容器里可用。
-
-以下 `BOT_CONTAINER` 是你实际容器名，`/app` 是**示例**机器人根目录，需要自行替换。先在共享的机器人目录克隆插件，再执行：
-
-```bash
-docker exec -u 0 BOT_CONTAINER node /app/plugins/yunzai-web-search/scripts/install.mjs --install-deps
-docker exec BOT_CONTAINER node /app/plugins/yunzai-web-search/scripts/diagnose.mjs
-```
-
-如果容器以非root用户运行，0644配置可以读取；需要由机器人用户修改配置时再改变所属用户。依赖安装只支持容器为 Debian/Ubuntu 且有 apt-get 的情况；Alpine 用自己的包管理器安装 Python/Pillow/中文字体，再运行不带 `--install-deps` 的安装器。
-
-**容器重建可能丢失已安装系统依赖。** 建议在你自己的机器人 Dockerfile 中加入：
-
-```dockerfile
-USER root
-RUN apt-get update && apt-get install -y --no-install-recommends python3 python3-pil fonts-wqy-microhei && rm -rf /var/lib/apt/lists/*
-# 按原镜像恢复机器人的运行用户，不要照抄未知用户名称
-```
-
-完整插件目录和本地 `config/plugin.json` 应留在现有持久化挂载中，路径以容器可见路径为准。不要配置宿主机专属的 Python 路径。没有新的 Docker Compose 服务、搜索端口或 Docker socket 权限要求。
-
-## Windows
-
-安装 Python 3.10+，在云崽根目录执行：
-
-```powershell
-git clone https://github.com/719083594/yunzai-web-search.git plugins/yunzai-web-search
-python -m pip install -r plugins/yunzai-web-search/requirements.txt
-node plugins/yunzai-web-search/scripts/install.mjs --python python
-```
-
-程序自动寻找 Windows 字体中的微软雅黑或黑体。不在 PATH 的 Python 可用 `--python "C:\Python312\python.exe"` 指定**自己的实际路径**。如果只有 `py` 启动器，请用 `py -3 -c "import sys; print(sys.executable)"` 查看 Python 路径并传给安装器；不要将 `py -3` 整串作为 pythonPath。
-
-Windows 已验证本机命令逻辑、标准库解析和 Pillow 中文结果图，没有完成 Windows 云崽真人QQ收图测试。
-
-## ZIP 和启动
-
-从 Releases 下载完整ZIP，最外层文件夹名称必须是 `yunzai-web-search`，放到 `plugins/yunzai-web-search` 后执行安装步骤。不要形成双层 `plugins/yunzai-web-search/yunzai-web-search`。完成后重启机器人，再发 `#搜索帮助`。
-
-若已经装有其他注册相同 `#搜索`/`#搜文`/`#搜图` 命令的插件，只启用其中一个命令入口，避免命令冲突。可选 GPT 工具适配器不是另一个命令插件。
-
-## 诊断与关闭
-
-- “Python不可用”：确认 `pythonPath` 在**机器人运行环境**中存在并可执行。
-- 图片变成文字：运行 `#搜索诊断`，检查 Pillow 和字体；这是可恢复的降级，不是搜索失败。
-- 网络问题：运行 `node plugins/yunzai-web-search/scripts/diagnose.mjs --network`，它会实际查询一次 Bing；可能遇到地区/网络/验证码限制。
-- “没有有效搜索结果”：搜索引擎页面结构改变或访问限制都可能导致；不会编造来源。请提供版本及脱敏错误信息。
-- 权限限制：`masterOnly=true` 时仅主人响应；诊断命令一直仅主人可用。
-- 配置报错：对照 `config/plugin.example.json` 检查 JSON，数字不是字符串。
-- 更新：`git pull --ff-only` 后重启；本地配置不会上传到仓库。
-- 停用：在插件管理器停用入口，或将整个目录移出 `plugins` 后重启；没有服务要停，没有数据目录要清理。
-
-Python脚本不是守护进程，不用手动后台启动。不需要其他附属机器人插件。
+Python不可用检查容器/系统与pythonPath；图片变文字检查Pillow/字体。没有有效结果可能是验证码、页面结构或网络限制，插件不补造来源。更新 `git pull --ff-only` 保留本地配置与标记。

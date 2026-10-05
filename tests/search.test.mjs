@@ -85,3 +85,17 @@ test('default config allows non-owner text and image searches with both prefixes
   assert.equal(calls,2);assert.equal(sent.length,2)
   assert(sent[0].includes(results[0].url));assert(sent[1].some(x=>x?.type==='image'))
 })
+
+test('framework send failure is never reported as delivered',async()=>{
+  for(const outcome of [false,{error:'send refused'}]){
+    const e={reply:async()=>outcome,isGroup:true}
+    await assert.rejects(deliverResult(e,sample,{config,image}),/发送失败/)
+    await assert.rejects(deliverResult(e,{...sample,format:'image',imageBase64:'aGVsbG8='},{config,image}),/发送失败/)
+    await assert.rejects(deliverResult(e,{...sample,format:'image',imageBase64:'aGVsbG8='},{config,image:()=>{throw Error('missing image adapter')}}),/发送失败/)
+  }
+})
+test('delivery preserves message receipt for legacy image-sent detection',async()=>{
+  const receipt={message_id:'fake-offline-id',time:123}
+  const delivered=await deliverResult({reply:async()=>receipt},{...sample,format:'image',imageBase64:'aGVsbG8='},{config,image})
+  assert.equal(delivered.message_id,receipt.message_id);assert.equal(delivered.delivered,true);assert.equal(delivered.format,'image');assert.equal(delivered.receipt,receipt)
+})

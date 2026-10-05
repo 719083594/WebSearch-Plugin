@@ -1,23 +1,35 @@
 {
-  "name": "yunzai-web-search",
-  "version": "1.0.2",
-  "description": "联网查询并发送文字摘要或搜索结果图，附来源链接和搜索时间。",
+  "name": "websearch-plugin",
+  "version": "2.0.0",
+  "description": "框架独立的联网搜索Node API与JSON/文字/PNG命令行，提供云崽及可选Chaite适配。",
   "type": "module",
   "license": "PolyForm-Noncommercial-1.0.0",
   "author": "719083594",
   "repository": {
     "type": "git",
-    "url": "https://github.com/719083594/yunzai-web-search.git"
+    "url": "https://github.com/719083594/WebSearch-Plugin.git"
   },
   "engines": {
     "node": ">=18.17"
   },
+  "main": "./api.mjs",
+  "exports": {
+    ".": "./api.mjs",
+    "./commands": "./lib/commands.mjs",
+    "./runtime": "./lib/runtime.mjs",
+    "./search-client": "./search-client.mjs",
+    "./cli": "./cli.mjs"
+  },
+  "bin": {"web-search": "./cli.mjs"},
   "scripts": {
     "test": "node --test tests/*.test.mjs",
-    "diagnose": "node scripts/diagnose.mjs"
+    "diagnose": "node cli.mjs diagnose"
   },
   "files": [
     "index.js",
+    "api.mjs",
+    "cli.mjs",
+    "search-client.mjs",
     "lib",
     "renderer",
     "config/plugin.example.json",

@@ -8,11 +8,11 @@ export function supportGuoba() {
   return {
     pluginInfo: {
       name: path.basename(directory).toLowerCase(),
-      title: 'YunzaiWebSearch',
+      title: 'WebSearch-Plugin',
       author: '@719083594',
       authorLink: 'https://github.com/719083594',
-      link: 'https://github.com/719083594/yunzai-web-search',
-      description: '联网查询并发送文字摘要或搜索结果图，附来源链接和搜索时间。',
+      link: 'https://github.com/719083594/WebSearch-Plugin',
+      description: '通用联网搜索，提供文字、JSON和结果图；此处为云崽桥接。',
       isV3: true,
       isV2: false,
       icon: 'mdi:cloud-search-outline',

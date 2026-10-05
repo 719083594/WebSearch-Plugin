@@ -110,14 +110,16 @@ def render(data,results):
         for content,font,color in lines:write(content,font,color)
         y=top+size+14
     write(['本图全部为合成示例，未发起真实搜索；只展示图片排版。' if data.get('synthetic') else '本图为本次联网搜索结果；搜索时间不等于来源数据更新时间。'],small,'#53685d')
-    buffer=io.BytesIO();image.crop((0,0,1080,min(height,y+22))).save(buffer,'JPEG',quality=82)
+    buffer=io.BytesIO();cropped=image.crop((0,0,1080,min(height,y+22)))
+    if data.get('imageType')=='png':cropped.save(buffer,'PNG',optimize=True)
+    else:cropped.save(buffer,'JPEG',quality=82)
     return base64.b64encode(buffer.getvalue()).decode()
 def process(data):
     if data.get('check'):return dependencies(data.get('fontPath',''))
     results=parse_results(data['html'],data['searchUrl'],min(8,max(1,int(data.get('maxResults',5)))))
     output={'results':results,'renderer':'web-result-card'}
     if data.get('image') and results:
-        try:output['imageBase64']=render(data,results);output['imageType']='jpeg'
+        try:output['imageBase64']=render(data,results);output['imageType']='png' if data.get('imageType')=='png' else 'jpeg'
         except (ImportError,OSError,ValueError):output['imageUnavailable']=True
     return output
 def main():

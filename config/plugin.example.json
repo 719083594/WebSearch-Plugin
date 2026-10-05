@@ -1,4 +1,5 @@
 {
+  "provider": "bing",
   "pythonPath": "python3",
   "fontPath": "",
   "timeoutMs": 26000,

@@ -1,16 +1,14 @@
-import plugin from '../../lib/plugins/plugin.js'
-import {config,searcher} from './lib/runtime.mjs'
-import {handleCommand} from './lib/commands.mjs'
+import fs from 'node:fs'
+export * from './api.mjs'
 
-export class WebSearch extends plugin {
-  constructor(){
-    super({name:'实时联网搜索',dsc:'联网文字和图片搜索',event:'message',priority:5,
-      rule:[{reg:/^[#/](?:搜索|搜图|搜文|搜索帮助|搜索诊断)(?:\s|$)/,fnc:'search',permission:'all'}]})
-  }
-  async search(e){
-    return handleCommand(e,{searcher,config,image:buffer=>{
-      if(!globalThis.segment?.image)throw new Error('当前框架未提供 segment.image，已改为文字结果。')
-      return globalThis.segment.image(buffer)
-    }})
-  }
+// Empty by default so Yunzai's loader does not instantiate API exports as
+// message plugins. Framework imports are enabled only by an explicit install.
+export let apps = {}
+const marker = new URL('./config/integration.json', import.meta.url)
+try {
+  const integration = JSON.parse(fs.readFileSync(marker, 'utf8').replace(/^\uFEFF/, ''))
+  if (integration.adapter === 'yunzai') apps = (await import('./integrations/yunzai/index.js')).apps
+  else if (integration.adapter !== 'none') throw new Error('不支持的集成适配器：'+integration.adapter)
+} catch (error) {
+  if (error.code !== 'ENOENT') throw error
 }

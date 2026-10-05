@@ -28,4 +28,11 @@ class DocumentTests(unittest.TestCase):
         self.assertEqual(doc.timestamp('2026-01-01T00:00:00Z','Asia/Shanghai'),'2026/01/01 08:00:00 Asia/Shanghai')
         r=doc.parse_results(row('字'*500,'https://example.org/','字'*1000),'https://cn.bing.com/search?q=x')
         self.assertEqual(len(r[0]['title']),180);self.assertEqual(len(r[0]['snippet']),350)
+    def test_png_output_is_real_png(self):
+        self.assertTrue(doc.dependencies()['imageReady'],'Pillow and CJK font are needed for the render test')
+        data={'html':row('PNG标题','https://example.org/png','真实PNG编码离线测试'),'query':'PNG测试','searchUrl':'https://cn.bing.com/search?q=x','searchedAt':'2026-01-01T00:00:00Z','image':True,'imageType':'png'}
+        result=doc.process(data)
+        self.assertEqual(result['imageType'],'png')
+        from PIL import Image
+        with Image.open(io.BytesIO(base64.b64decode(result['imageBase64']))) as image:self.assertEqual(image.format,'PNG');self.assertEqual(image.width,1080)
 if __name__=='__main__':unittest.main()

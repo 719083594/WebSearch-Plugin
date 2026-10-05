@@ -1,5 +1,13 @@
 # 更新记录
 
+## 2.0.0
+
+- 改名WebSearch-Plugin，提供独立Node API、JSON/文字/PNG命令行、离线/联网诊断。
+- 云崽基类仅存在于integrations/yunzai，安装器显式--yunzai-bridge生成本地标记，核心和CLI无需框架。
+- 可选认证endpoint客户端兼容既有browser sidecar，保留answerText及原图、共享并发、取消和聊天期限hook。
+- 保留旧config/plugin.json参数、搜索命令、权限、群引用、缺图回退及Chaite/search-client兼容接口。
+- 新增独立导入、CLI输出、安装迁移、真实PNG与服务认证/边界测试。
+
 ## 1.0.2
 
 - 添加 OrangeJuice 原生插件主页、命令与逐字段配置声明。

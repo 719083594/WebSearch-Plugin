@@ -4,7 +4,7 @@
 
 兼容前提：你的 chatgpt-plugin 使用提供 `CustomTool`、`asyncLocalStorage`、原生工具管理面板的 Chaite 版本。不同分支的工具接口可能不同，不强行覆盖未知版本。
 
-1. 独立插件目录保持 `plugins/yunzai-web-search`，先确认 `#搜文` 成功。
+1. 完整项目保持 `plugins/WebSearch-Plugin`，安装器显式启用 `--yunzai-bridge`，先确认 `#搜文` 成功。
 2. 将 `integrations/chaite-tool.js` **复制**到 `plugins/chatgpt-plugin/utils/tools/web_search.js`。这段相对导入按该目录布局编写，其他布局须调整。
 3. 在GPT原生“工具”面板添加或编辑 `web_search`，粘贴适配器完整源码，设为启用，权限选择 `public`（公共），然后用面板的 Schema 检查。仅复制文件可能不在模型可用列表中。
 4. 在预设启用相应的自定义工具组，模型需真实支持 Function Calling，工具选择用 auto。已有同名工具时编辑它，不要创建重复工具。

@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "title": "YunzaiWebSearch",
-  "description": "联网查询并发送文字摘要或搜索结果图，附来源链接和搜索时间。",
-  "homepage": "https://github.com/719083594/yunzai-web-search",
+  "title": "WebSearch-Plugin",
+  "description": "通用联网搜索，提供Node API、CLI及云崽桥接；附来源和搜索时间。",
+  "homepage": "https://github.com/719083594/WebSearch-Plugin",
   "commands": [
     "#搜索 关键词",
     "#搜文 关键词",
@@ -18,6 +18,16 @@
       "example": "config/plugin.example.json",
       "reload": "restart",
       "fields": [
+        {
+          "path": "provider",
+          "label": "搜索后端（bing或endpoint）",
+          "type": "string"
+        },
+        {
+          "path": "endpoint",
+          "label": "可选认证搜索服务地址（密钥请在本地文件配置）",
+          "type": "string"
+        },
         {
           "path": "pythonPath",
           "label": "Python 命令",

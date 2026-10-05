@@ -18,3 +18,16 @@ jobs:
       - run: /usr/bin/python3 tests/document_test.py
       - run: /usr/bin/python3 -m py_compile renderer/document.py scripts/demo.py
       - run: node scripts/diagnose.mjs
+      - run: node cli.mjs --help
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: node --test tests/*.test.mjs
+      - run: node cli.mjs diagnose
