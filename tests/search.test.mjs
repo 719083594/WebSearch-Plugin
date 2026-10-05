@@ -74,3 +74,14 @@ test('missing image dependency or framework segment falls back to text',async()=
   await deliverResult(e,{...sample,format:'image',imageBase64:Buffer.from('jpeg').toString('base64')},{config,image})
   assert.equal(sent[2][1].type,'image')
 })
+
+test('default config allows non-owner text and image searches with both prefixes',async()=>{
+  assert.equal(config.masterOnly,false)
+  const sent=[];let calls=0
+  const searcher={search:async(q,format)=>{calls++;return {...sample,query:q,format,imageBase64:format==='image'?Buffer.from('jpeg').toString('base64'):undefined}}}
+  for(const msg of ['#搜文 测试','/搜图 测试']){
+    await handleCommand({msg,isMaster:false,isGroup:true,user_id:msg,reply:async m=>sent.push(m)},{searcher,config,image})
+  }
+  assert.equal(calls,2);assert.equal(sent.length,2)
+  assert(sent[0].includes(results[0].url));assert(sent[1].some(x=>x?.type==='image'))
+})

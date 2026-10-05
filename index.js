@@ -4,8 +4,8 @@ import {handleCommand} from './lib/commands.mjs'
 
 export class WebSearch extends plugin {
   constructor(){
-    super({name:'实时联网搜索',dsc:'无需AI的文字和图片搜索',event:'message',priority:5,
-      rule:[{reg:/^[#/](?:搜索|搜图|搜文|搜索帮助|搜索诊断)(?:\s|$)/,fnc:'search'}]})
+    super({name:'实时联网搜索',dsc:'联网文字和图片搜索',event:'message',priority:5,
+      rule:[{reg:/^[#/](?:搜索|搜图|搜文|搜索帮助|搜索诊断)(?:\s|$)/,fnc:'search',permission:'all'}]})
   }
   async search(e){
     return handleCommand(e,{searcher,config,image:buffer=>{
