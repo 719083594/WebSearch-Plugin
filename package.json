@@ -1,12 +1,36 @@
 {
   "name": "yunzai-web-search",
-  "version": "1.0.0",
-  "description": "云崽独立联网搜索插件，无需AI或API Key，返回文字或真实搜索结果图",
+  "version": "1.0.1",
+  "description": "联网查询并发送文字摘要或搜索结果图，附来源链接和搜索时间。",
   "type": "module",
   "license": "PolyForm-Noncommercial-1.0.0",
   "author": "719083594",
-  "repository": { "type": "git", "url": "https://github.com/719083594/yunzai-web-search.git" },
-  "engines": { "node": ">=18.17" },
-  "scripts": { "test": "node --test tests/*.test.mjs", "diagnose": "node scripts/diagnose.mjs" },
-  "files": ["index.js", "lib", "renderer", "config/plugin.example.json", "scripts", "integrations", "requirements.txt", "docs", "README.md", "LICENSE", "NOTICE", "SECURITY.md", "CHANGELOG.md"]
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/719083594/yunzai-web-search.git"
+  },
+  "engines": {
+    "node": ">=18.17"
+  },
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "diagnose": "node scripts/diagnose.mjs"
+  },
+  "files": [
+    "index.js",
+    "lib",
+    "renderer",
+    "config/plugin.example.json",
+    "scripts",
+    "integrations",
+    "requirements.txt",
+    "docs",
+    "README.md",
+    "LICENSE",
+    "NOTICE",
+    "SECURITY.md",
+    "CHANGELOG.md",
+    "guoba.support.js",
+    "resources"
+  ]
 }

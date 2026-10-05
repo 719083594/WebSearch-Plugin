@@ -1,4 +1,6 @@
-# 云崽实时联网搜索插件
+<img src="resources/icon.png" width="72" height="72" alt="YunzaiWebSearch 图标">
+
+# YunzaiWebSearch · 联网搜索
 
 发送一条命令，返回本次联网搜索的文字结果或图片。
 
@@ -96,3 +98,7 @@ node plugins/yunzai-web-search/scripts/diagnose.mjs --network
 采用 [PolyForm Noncommercial 1.0.0](LICENSE)：允许符合条款的非商业使用、复制、修改、分享，商业使用需另行取得权利人许可。再分发保留 `LICENSE` 与 `NOTICE`；以完整许可证为准。外部框架、Pillow 和字体各自保留自己的许可证，不包含在源码包中。
 
 预览为合成示例。实际查询会传到 Bing；搜索结果和发送内容的留存受 QQ 和机器人框架配置影响，见 [隐私说明](SECURITY.md)。
+
+## 插件列表信息
+
+插件列表显示名称为 `YunzaiWebSearch`，包含本地图标、作者和功能介绍。安装目录可以沿用原名；显示名称不影响命令或配置路径。
