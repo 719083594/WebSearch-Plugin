@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "title": "YunzaiWebSearch",
+  "description": "联网查询并发送文字摘要或搜索结果图，附来源链接和搜索时间。",
+  "homepage": "https://github.com/719083594/yunzai-web-search",
+  "commands": [
+    "#搜索 关键词",
+    "#搜文 关键词",
+    "#搜图 关键词",
+    "#搜索帮助",
+    "#搜索诊断（仅主人）"
+  ],
+  "configs": [
+    {
+      "id": "plugin",
+      "title": "搜索配置",
+      "file": "config/plugin.json",
+      "example": "config/plugin.example.json",
+      "reload": "restart",
+      "fields": [
+        {
+          "path": "pythonPath",
+          "label": "Python 命令",
+          "type": "string"
+        },
+        {
+          "path": "fontPath",
+          "label": "中文字体路径",
+          "type": "string"
+        },
+        {
+          "path": "timeoutMs",
+          "label": "搜索等待上限（毫秒）",
+          "type": "integer",
+          "min": 1000,
+          "max": 30000
+        },
+        {
+          "path": "maxResults",
+          "label": "最多结果数",
+          "type": "integer",
+          "min": 1,
+          "max": 8
+        },
+        {
+          "path": "masterOnly",
+          "label": "仅主人可搜索",
+          "type": "boolean"
+        },
+        {
+          "path": "cooldownMs",
+          "label": "搜索冷却（毫秒）",
+          "type": "integer",
+          "min": 0,
+          "max": 600000
+        },
+        {
+          "path": "timeZone",
+          "label": "显示时区",
+          "type": "string"
+        }
+      ]
+    }
+  ]
+}

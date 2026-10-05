@@ -1,6 +1,6 @@
 {
   "name": "yunzai-web-search",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "联网查询并发送文字摘要或搜索结果图，附来源链接和搜索时间。",
   "type": "module",
   "license": "PolyForm-Noncommercial-1.0.0",
@@ -31,6 +31,7 @@
     "SECURITY.md",
     "CHANGELOG.md",
     "guoba.support.js",
-    "resources"
+    "resources",
+    "orangejuice.plugin.json"
   ]
 }

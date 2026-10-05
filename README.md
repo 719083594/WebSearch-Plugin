@@ -102,3 +102,7 @@ node plugins/yunzai-web-search/scripts/diagnose.mjs --network
 ## 插件列表信息
 
 插件列表显示名称为 `YunzaiWebSearch`，包含本地图标、作者和功能介绍。安装目录可以沿用原名；显示名称不影响命令或配置路径。
+
+## OrangeJuice 管理面板
+
+插件提供 `orangejuice.plugin.json` 原生配置声明。安装橙汁后，在插件主页的“配置项”中编辑各项设置；保存后按页面提示重启机器人。
