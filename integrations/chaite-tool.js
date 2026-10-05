@@ -17,7 +17,7 @@ class StandaloneWebSearch extends CustomTool {
       let imageSent=false,resultsSent=false
       if(result.format==='image'&&result.imageBase64&&event?.reply){const delivery=await deliverResult(event,result,{config,image:b=>globalThis.segment.image(b)});resultsSent=delivery.delivered;imageSent=delivery.format==='image'}
       protection?.rememberSearchFallback?.(resultsSent?async()=>{}:async e=>e.reply('模型整理暂时失败，以下是本次联网搜索结果：\n\n'+formatText(result,config),Boolean(e.isGroup)))
-      return JSON.stringify({success:true,query:result.query,searchedAt:result.searchedAt,searchUrl:result.searchUrl,source:result.searchUrl,answerText:result.answerText||'',cached:!!result.cached,results:result.results,imageSent,message:'根据本次结果和来源回答；已发图片不要重复发送。搜索时间不等于来源数据更新时间。'})
+      return JSON.stringify({success:true,query:result.query,searchedAt:result.searchedAt,searchUrl:result.searchUrl,source:result.searchUrl,engine:result.engine,provenance:result.provenance,answerText:result.answerText||'',cached:!!result.cached,results:result.results,imageSent,message:'根据本次资料和来源直接回答用户问题，不使用固定开场白；已发送图片不要重复发送。资料不足时明确说明，搜索时间不等于来源更新时间。'})
     }catch(error){return JSON.stringify({success:false,error:error.message,message:'未能联网核实，不重复同一查询，不编造已搜索的结果。'})}
   }
 }

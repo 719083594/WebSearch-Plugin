@@ -20,7 +20,7 @@
       "fields": [
         {
           "path": "provider",
-          "label": "搜索后端（bing或endpoint）",
+          "label": "搜索后端（auto、bing、360、sogou或endpoint）",
           "type": "string"
         },
         {
@@ -44,6 +44,13 @@
           "type": "integer",
           "min": 1000,
           "max": 30000
+        },
+        {
+          "path": "sourceTimeoutMs",
+          "label": "单搜索源等待上限（毫秒）",
+          "type": "integer",
+          "min": 1000,
+          "max": 10000
         },
         {
           "path": "maxResults",

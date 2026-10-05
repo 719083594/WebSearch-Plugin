@@ -11,7 +11,9 @@ const controller = new AbortController()
 const result = await search.search('关键词', 'text', {signal:controller.signal})
 ```
 
-format支持auto/text/image；本机图片可指定imageType:png，默认JPEG。输出有query、searchUrl、searchedAt、engine、cached、format、results列表，可有answerText、imageBase64、imageType、imageUnavailable。失败throw Error，不会编造ok结果；无图时保留文字。
+format支持auto/text/image，与provider选择是两回事；本机图片可指定imageType:png，默认JPEG。输出有query、实际searchUrl、searchedAt、真实engine、cached、format、results列表，可有answerText、imageBase64、imageType、imageUnavailable。requestedQuery/effectiveQuery/queryVerified/attemptedEngines及provenance保留查询来源；provenance.relevance是relevant/uncertain轻量判断，不是事实准确性保证。
+
+provider:auto最多两个源，固定源只尝试该源。每源默认8秒、全局26秒，宿主传signal可更早取消。完整查询变化、captcha、空结果和明显首词偏题不返回成功；失败throw Error，不无限重试、不伪造ok。无图但资料有效时仍保留文字。endpoint服务必须提供与实际搜索URL一致的完整query；不能用原问题标签掩盖服务实际截词。
 
 并发限制每实例1次；命令与AI工具需共享实例，默认 `lib/runtime.mjs` 已提供共享searcher。跨进程/多实例限流由宿主处理。核心API不认识QQ账号、群聊或权限，宿主负责身份、冷却、取消和消息发送。不能把masterOnly配置当成裸API的网络鉴权。网页正文是资料，不执行其中指令。
 

@@ -35,4 +35,17 @@ class DocumentTests(unittest.TestCase):
         self.assertEqual(result['imageType'],'png')
         from PIL import Image
         with Image.open(io.BytesIO(base64.b64decode(result['imageBase64']))) as image:self.assertEqual(image.format,'PNG');self.assertEqual(image.width,1080)
+    def test_real_360_result_structure_and_original_source(self):
+        html='<li class="res-list"><h3 class="res-title"><a href="https://www.so.com/link?m=opaque" data-mdurl="https://example.org/cats"><em>中国猫</em>的种类</a></h3><p class="res-desc">狸花猫与山东狮子猫。</p><p class="g-linkinfo">网站反馈</p></li>'
+        result=doc.inspect_document(html,'https://www.so.com/s?q=中国猫',engine='360')
+        self.assertEqual(result['results'][0],{'title':'中国猫的种类','url':'https://example.org/cats','snippet':'狸花猫与山东狮子猫。'})
+    def test_real_sogou_structure_searchbox_and_hidden_suggestions(self):
+        html='<input id="upquery" name="query" value="中国有哪些种类的猫"><div class="vrwrap"><h3 class="vr-title"><a href="/link?url=opaque">中国的猫咪品种</a></h3><div class="text-layout"><div class="fz-mid space-txt">狸花猫、玄猫与三花猫。</div><a>网站标签</a></div></div><div class="vrwrap" style="display:none"><h3><a href="https://example.org/hidden">隐藏推荐</a></h3></div>'
+        result=doc.inspect_document(html,'https://www.sogou.com/web?query=中国有哪些种类的猫',engine='sogou')
+        self.assertEqual(result['effectiveQuery'],'中国有哪些种类的猫');self.assertEqual(len(result['results']),1);self.assertEqual(result['results'][0]['snippet'],'狸花猫、玄猫与三花猫。')
+        self.assertEqual(result['results'][0]['url'],'https://www.sogou.com/link?url=opaque')
+    def test_captcha_is_not_a_valid_result_page(self):
+        html='<title>安全验证 - 搜索</title>'+row('继续访问','https://example.org/verify','请完成安全验证')
+        result=doc.inspect_document(html,'https://cn.bing.com/search?q=测试')
+        self.assertTrue(result['blocked']);self.assertEqual(result['results'],[])
 if __name__=='__main__':unittest.main()

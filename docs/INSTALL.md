@@ -10,7 +10,7 @@ node WebSearch-Plugin/scripts/install.mjs
 node WebSearch-Plugin/cli.mjs search "测试关键词" --format json
 ```
 
-| 组件 | 默认bing后端 | 认证endpoint后端 |
+| 组件 | 默认auto本机后端 | 认证endpoint后端 |
 | --- | --- | --- |
 | Node.js 18.17+ | 必需 | 必需 |
 | Python 3.10+ | HTML解析必需 | 不要求本机安装 |
@@ -28,12 +28,13 @@ Windows执行 `node scripts/install.mjs --python python`。不在PATH的Python�
 
 | 字段 | 默认 | 作用 |
 | --- | --- | --- |
-| provider | `bing` | bing本机解析，endpoint认证服务客户端 |
+| provider | `auto` | auto有限换源；bing/360/sogou固定源；endpoint认证服务客户端 |
 | endpoint | 空 | 服务基础HTTP(S)地址，不含密码、查询串或片段 |
 | secret | 空 | 服务密钥，只保存本地，不可提交 |
 | pythonPath | Windows python，其余python3 | 可执行文件路径，不带命令参数 |
 | fontPath | 空 | 自动查找中文字体，可指定文件 |
 | timeoutMs | 26000 | 整次上限，1000～30000毫秒 |
+| sourceTimeoutMs | 8000 | 本机单源上限，1000～10000毫秒；最多两源 |
 | maxResults | 5 | 1～8条，本机图片卡片最多4条 |
 | masterOnly | false | 云崽/Chaite主人权限；裸API的宿主自己鉴权 |
 | cooldownMs | 5000 | 云崽命令个人冷却，0～600000毫秒 |
@@ -54,7 +55,13 @@ Windows执行 `node scripts/install.mjs --python python`。不在PATH的Python�
 }
 ```
 
-服务约定：POST /search，header x-search-secret，JSON `{query,image}`；返回 `{ok:true,searchedAt,results:[{title,snippet,url}],answerText?,imageBase64?}`。图片接受PNG/JPEG；禁止重定向转发密钥。公网用HTTPS，HTTP只适合可信本地/内网。服务部署、鉴权和生命周期由你维护，本插件不开放搜索端口。
+服务约定：POST /search，header x-search-secret，JSON `{query,image}`；返回 `{ok:true,query,engine,searchUrl,searchedAt,results:[{title,snippet,url}],provenance?,answerText?,imageBase64?}`。query和实际searchUrl的q/query必须与原问题一致；engine必须匹配Bing/360/Sogou实际域名，不再重贴原关键词掩盖查询变化。旧服务已提供这些元数据时兼容，不含元数据或自报关键词改变则明确失败。
+
+图片接受PNG/JPEG，禁止重定向转发密钥。公网用HTTPS，HTTP只适合可信本地/内网。核心/CLI不监听端口。需要自建时，仓库service目录提供显式启动、带认证/体积限制/取消的内部HTTP适配器；部署和密钥管理见service/README.md，不建议公开端口。
+
+auto按语言选优先级，含汉字360→Sogou→Bing，其他Bing→360→Sogou，每次最多尝试两个源。单源8秒预算包含下载、解析和渲染；全局26秒与宿主AbortSignal仍会中止。失败后不无限重试、不截短问题。固定源配置不自动改变引擎。已保存的旧bing配置仍固定Bing，希望自动换源需管理员改provider:auto并重启。
+
+查询完整性通过实际最终URL和可见搜索框校验，Bing/360/Sogou重定向只允许其固定HTTPS域且保留原q/query。非空结果仍可能不相关，轻量检查只拦明显仅开头词匹配而无主题的情形，不做完整语义判断；未知同义/翻译保留uncertain元数据。captcha不作为成功结果。
 
 ## CLI
 

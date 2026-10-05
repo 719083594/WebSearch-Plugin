@@ -1,40 +1,37 @@
 #!/usr/bin/env python3
-"""Parse inert Bing HTML and optionally render actual results; no HTTP or shell."""
+"""Parse inert Bing/360/Sogou HTML and render sources; no HTTP or shell."""
 import base64,datetime,io,json,os,re,sys
 from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import parse_qs,urljoin,urlsplit
 from zoneinfo import ZoneInfo,ZoneInfoNotFoundError
 
+class Node:
+    def __init__(self,tag,attrs=None):self.tag=tag;self.attrs=dict(attrs or []);self.children=[]
+    def classes(self):return set((self.attrs.get('class') or '').split())
+    def hidden(self):return self.tag in ('script','style','noscript') or 'hidden' in self.attrs or self.attrs.get('aria-hidden')=='true' or re.search(r'display\s*:\s*none',self.attrs.get('style') or '',re.I)
 class ResultsParser(HTMLParser):
-    def __init__(self):
-        super().__init__(convert_charrefs=True)
-        self.results=[];self.stack=[];self.row=None;self.row_depth=0;self.in_h2=False;self.in_p=False
+    void={'area','base','br','col','embed','hr','img','input','link','meta','param','source','track','wbr'}
+    def __init__(self):super().__init__(convert_charrefs=True);self.root=Node('document');self.stack=[self.root]
     def handle_starttag(self,tag,attrs):
-        attrs=dict(attrs);self.stack.append(tag)
-        if tag=='li' and 'b_algo' in attrs.get('class','').split():
-            self.row={'title':'','url':'','snippet':''};self.row_depth=len(self.stack)
-        if self.row:
-            if tag=='h2':self.in_h2=True
-            if tag=='a' and self.in_h2 and not self.row['url']:self.row['url']=attrs.get('href','')
-            if tag=='p':self.in_p=True
-        if tag in ('meta','link','img','br','input','hr','source','wbr'):self.stack.pop()
+        node=Node(tag,attrs);self.stack[-1].children.append(node)
+        if tag not in self.void:self.stack.append(node)
     def handle_startendtag(self,tag,attrs):
         self.handle_starttag(tag,attrs)
-        if tag in self.stack:self.handle_endtag(tag)
+        if tag not in self.void:self.handle_endtag(tag)
     def handle_endtag(self,tag):
-        if self.row:
-            if tag=='h2':self.in_h2=False
-            if tag=='p':self.in_p=False
-            if tag=='li' and len(self.stack)==self.row_depth:
-                if self.row['title'].strip() and self.row['url']:self.results.append(self.row)
-                self.row=None;self.in_h2=False;self.in_p=False
-        if tag in self.stack:
-            index=len(self.stack)-1-self.stack[::-1].index(tag);self.stack=self.stack[:index]
-    def handle_data(self,data):
-        if self.row and not any(t in self.stack for t in ('script','style')):
-            if self.in_h2:self.row['title']+=data
-            elif self.in_p:self.row['snippet']+=data
+        for index in range(len(self.stack)-1,0,-1):
+            if self.stack[index].tag==tag:self.stack=self.stack[:index];break
+    def handle_data(self,data):self.stack[-1].children.append(data)
+
+def walk(node):
+    if node.hidden():return
+    yield node
+    for child in node.children:
+        if isinstance(child,Node):yield from walk(child)
+def node_text(node):
+    if node.hidden():return ''
+    return ''.join(node_text(child) if isinstance(child,Node) else child for child in node.children)
 
 def clean(value,limit):return re.sub(r'\s+',' ',re.sub(r'[\x00-\x08\x0b-\x1f]','',value)).strip()[:limit]
 def source_url(value,search_url):
@@ -47,14 +44,45 @@ def source_url(value,search_url):
             except (ValueError,UnicodeError):return ''
     if parsed.scheme not in ('http','https') or not parsed.hostname or parsed.username or parsed.password:return ''
     return value[:500]
-def parse_results(html,search_url,limit=5):
-    parser=ResultsParser();parser.feed(html);results=[];seen=set()
-    for row in parser.results:
-        url=source_url(row['url'],search_url)
-        if not url or url in seen:continue
-        seen.add(url);results.append({'title':clean(row['title'],180),'url':url,'snippet':clean(row['snippet'],350)})
+def inspect_document(html,search_url,limit=5,engine=None):
+    host=urlsplit(search_url).hostname
+    engine=engine or ('360' if host in ('www.so.com','so.com') else 'sogou' if host in ('www.sogou.com','sogou.com') else 'bing')
+    parser=ResultsParser();parser.feed(html);nodes=list(walk(parser.root));results=[];seen=set()
+    for container in nodes:
+        classes=container.classes()
+        is_result=(engine=='bing' and container.tag=='li' and 'b_algo' in classes) or (engine=='360' and container.tag=='li' and 'res-list' in classes) or (engine=='sogou' and container.tag=='div' and bool(classes&{'vrwrap','rb'}))
+        if not is_result:continue
+        descendants=list(walk(container))
+        heading=next((node for node in descendants if node.tag==('h2' if engine=='bing' else 'h3')),None)
+        if heading is None:continue
+        link=next((node for node in walk(heading) if node.tag=='a' and node.attrs.get('href')),None)
+        if link is None:continue
+        # 360 gives the actual source in data-mdurl beside an opaque /link URL.
+        url=source_url(link.attrs.get('data-mdurl') or link.attrs.get('data-replaceurl') or link.attrs.get('href',''),search_url)
+        title=clean(node_text(heading),180)
+        if not url or url in seen or not title:continue
+        if engine=='bing':snippets=[node for node in descendants if node.tag=='p']
+        else:snippets=[node for node in descendants if node.classes()&{'res-desc','res-list-summary','str_info','str-text','space-txt','text-layout'}]
+        # Use innermost selected regions once, so wrapper+child do not repeat.
+        if not snippets:snippets=[node for node in descendants if node.tag=='p' and not node.classes()&{'g-linkinfo'}]
+        selected=[node for node in snippets if not any(child is not node and child in list(walk(node)) for child in snippets)]
+        snippet=clean(' '.join(node_text(node) for node in selected),350)
+        seen.add(url);results.append({'title':title,'url':url,'snippet':snippet})
         if len(results)>=limit:break
-    return results
+    inputs=[node for node in nodes if node.tag=='input' and node.attrs.get('value') and (node.attrs.get('id') in ('sb_form_q','upquery','keyword','input','bottom_form_querytext') or node.attrs.get('name') in ('q','query'))]
+    visible=next((node for node in inputs if node.attrs.get('type')!='hidden'),None)
+    effective=(visible or (inputs[0] if inputs else None))
+    title=clean(' '.join(node_text(node) for node in nodes if node.tag=='title'),300)
+    blocked=bool(re.match(r'^(?:安全验证|访问验证|人机验证|验证码|captcha|security check)(?:\s|[-_—：:]|$)',title,re.I))
+    requested=parse_qs(urlsplit(search_url).query).get('q' if engine!='sogou' else 'query',[''])[0]
+    if blocked and results and effective and effective.attrs['value']==requested and title.lower().startswith(requested.lower()+' - '):blocked=False
+    if not results:
+        text=clean(node_text(parser.root),1200)
+        blocked=blocked or bool(re.search(r'请完成.{0,8}(?:验证|验证码)|检测到异常访问|请输入验证码|verify (?:you are|that you are) human',text,re.I))
+    output={'results':[] if blocked else results,'renderer':'web-result-card','blocked':blocked}
+    if effective:output['effectiveQuery']=effective.attrs['value']
+    return output
+def parse_results(html,search_url,limit=5,engine=None):return inspect_document(html,search_url,limit,engine)['results']
 
 def find_font(specified=''):
     if specified:return specified if Path(specified).is_file() else None
@@ -104,7 +132,7 @@ def render(data,results):
         for line in lines:draw.text((40,y),line,font=font,fill=color);y+=font.size+7
     write(query_lines,title,'#183c2b')
     time=timestamp(data['searchedAt'],data.get('timeZone','Asia/Shanghai'))
-    write([('示例时间：' if data.get('synthetic') else '搜索时间：')+time+(' · 离线合成示例' if data.get('synthetic') else ' · Bing · 每次重新联网')],small,'#53685d');y+=18
+    write([('示例时间：' if data.get('synthetic') else '搜索时间：')+time+(' · 离线合成示例' if data.get('synthetic') else ' · '+str(data.get('engineLabel',data.get('engine','Bing')))+' · 每次重新联网')],small,'#53685d');y+=18
     for lines,size in cards:
         top=y;draw.rounded_rectangle((25,top,1055,top+size),radius=12,fill='white');y+=12
         for content,font,color in lines:write(content,font,color)
@@ -116,8 +144,8 @@ def render(data,results):
     return base64.b64encode(buffer.getvalue()).decode()
 def process(data):
     if data.get('check'):return dependencies(data.get('fontPath',''))
-    results=parse_results(data['html'],data['searchUrl'],min(8,max(1,int(data.get('maxResults',5)))))
-    output={'results':results,'renderer':'web-result-card'}
+    output=inspect_document(data['html'],data['searchUrl'],min(8,max(1,int(data.get('maxResults',5)))),data.get('engine'))
+    results=output['results']
     if data.get('image') and results:
         try:output['imageBase64']=render(data,results);output['imageType']='png' if data.get('imageType')=='png' else 'jpeg'
         except (ImportError,OSError,ValueError):output['imageUnavailable']=True

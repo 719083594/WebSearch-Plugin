@@ -6,7 +6,9 @@ import {createSearcher, runDocument} from './lib/search.mjs'
 export {createSearcher, chooseFormat, runDocument} from './lib/search.mjs'
 export {readConfig, normalizeConfig, defaults, localConfigPath} from './lib/config.mjs'
 export {formatText} from './lib/format.mjs'
-export const version = '2.0.0'
+export {assessRelevance,queryTerms} from './lib/relevance.mjs'
+export {engineOrder,searchAddress} from './lib/engines.mjs'
+export const version = '2.1.0'
 
 export function createWebSearch(options = {}) {
   const config = options.config === undefined ? readConfig(options.configPath) : normalizeConfig(options.config)
@@ -24,6 +26,9 @@ export function createWebSearch(options = {}) {
         result.networkChecked = true
         result.resultCount = search.results.length
         result.searchedAt = search.searchedAt
+        result.engine = search.engine
+        result.searchUrl = search.searchUrl
+        result.provenance = search.provenance
       }
       return result
     }

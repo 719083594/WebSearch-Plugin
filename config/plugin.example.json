@@ -1,8 +1,9 @@
 {
-  "provider": "bing",
+  "provider": "auto",
   "pythonPath": "python3",
   "fontPath": "",
   "timeoutMs": 26000,
+  "sourceTimeoutMs": 8000,
   "maxResults": 5,
   "masterOnly": false,
   "cooldownMs": 5000,

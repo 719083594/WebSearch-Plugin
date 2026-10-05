@@ -10,7 +10,8 @@ const help = `WebSearch-Plugin ${version}
   web-search diagnose [--network] [--config 配置.json]
   web-search --help | --version
 JSON为默认输出；png/image需要--output。image保留后端原始PNG/JPEG。图片依赖缺失时输出文字，并在stderr说明。
-查询发送到Bing；diagnose默认只检查本机，--network才发起联网搜索。`
+默认auto：含汉字优先360/搜狗，其他优先Bing/360，每次最多两个源；也可配置固定源或认证endpoint。
+diagnose默认只检查本机，--network才发起联网搜索。`
 
 export async function runCli(argv, {stdout = value => process.stdout.write(value), stderr = value => process.stderr.write(value), writeFile = fs.writeFile, createService = createWebSearch} = {}) {
   try {

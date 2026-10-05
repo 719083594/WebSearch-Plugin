@@ -2,13 +2,13 @@
 
 # WebSearch-Plugin · 通用联网搜索
 
-框架独立的搜索组件，提供 **Node API、JSON/文字/PNG命令行**，以及现成的云崽V3桥接和可选Chaite工具。旧名为 `yunzai-web-search`；2.0.0将框架导入移到适配器，保留原命令与配置。
+框架独立的搜索组件，提供 **Node API、JSON/文字/PNG命令行**，以及现成的云崽V3桥接和可选Chaite工具。旧名为 `yunzai-web-search`；2.1.0默认有限换源，保留完整关键词、实际引擎和来源，拒绝明显只匹配问题开头词的偏题结果。
 
 ![离线合成示例，非实时搜索数据](docs/preview.jpg)
 
 ## 独立使用
 
-需要Node.js 18.17+。默认本机Bing解析还需要Python 3.10+，Pillow和中文字体只影响图片。已部署认证搜索服务时可选择endpoint后端，不需要本机Python。
+需要Node.js 18.17+。默认本机搜索解析需要Python 3.10+，Pillow和中文字体只影响图片。已部署认证搜索服务时可选择endpoint后端，不需要客户端本机Python。
 
 ```bash
 git clone https://github.com/719083594/WebSearch-Plugin.git
@@ -20,7 +20,11 @@ node cli.mjs search "测试关键词" --format png --output result.png
 node cli.mjs diagnose
 ```
 
-JSON在stdout、错误和提示在stderr，适合其他机器人或Python调用。图片依赖缺失回退文字且不写目标图片。图片只在显式--output时落盘；默认搜索不保存历史、日志或图片缓存。endpoint模式只提供认证客户端，不新增HTTP服务器。
+JSON在stdout、错误和提示在stderr，适合其他机器人或Python调用。图片依赖缺失回退文字且不写目标图片。图片只在显式--output时落盘；默认搜索不保存历史、日志或图片缓存。endpoint模式是认证客户端；需要自行托管时可显式启动 [可选内部服务适配器](service/README.md)，核心/CLI及导入服务模块都不会自动监听端口。
+
+默认provider:auto：含汉字的查询按360→Sogou→Bing优先级，其他按Bing→360→Sogou；每次最多尝试前两个源。每源默认8秒、全局26秒，安全验证、空结果、关键词变化或明显偏题时有限换源，失败明确报错，不编数据。显式bing/360/sogou固定单源，旧bing/endpoint配置保持有效。
+
+轻量相关性只拦截“多主题问题只匹配开头词、其他主题完全未出现”的明显偏题，不能证明答案正确。未知同义词、缩写或跨语言结果标为uncertain而非一律拒绝。真实engine/searchUrl与query/provenance会返回，关键词不会被偷偷删改。
 
 ## Node API
 
@@ -60,7 +64,7 @@ NoneBot、Koishi等可通过API/CLI接入，尚未提供这些框架的完整即
 
 ## 配置、更新与迁移
 
-配置模板为 `config/plugin.example.json`。旧版pythonPath、fontPath、timeoutMs、maxResults、masterOnly、cooldownMs、timeZone继续兼容。provider可选bing/endpoint，服务认证仅保存在被忽略的本地配置。重建需明确--force-config，更新不替换个人配置。
+配置模板为 `config/plugin.example.json`。旧版pythonPath、fontPath、timeoutMs、maxResults、masterOnly、cooldownMs、timeZone继续兼容。provider可选auto/bing/360/sogou/endpoint，服务认证仅保存在被忽略的本地配置。重建需明确--force-config，更新不替换个人配置。
 
 ```bash
 git -C plugins/WebSearch-Plugin pull --ff-only
@@ -73,7 +77,7 @@ node plugins/WebSearch-Plugin/cli.mjs diagnose --network
 
 ## 搜索与隐私
 
-默认每次请求HTTPS Bing，不缓存查询。搜索摘要可能滞后，搜索时间不等于来源内容或行情更新时间。验证码、引擎结构变动和网络限制均可能导致失败，插件不编造结果。
+默认每次请求HTTPS搜索源，不缓存查询。搜索摘要可能滞后，相关性检查不等于事实核实，搜索时间不等于来源内容或行情更新时间。验证码、引擎结构变动和网络限制均可能导致失败，插件不编造结果。
 
 查询会传给Bing或你自行配置的搜索服务，QQ/框架/可选AI可能保存消息，见 [SECURITY](SECURITY.md)。源码包不含私人服务地址、凭据或实际聊天数据。
 

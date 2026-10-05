@@ -6,7 +6,7 @@ import {handleCommand,deliverResult} from '../lib/commands.mjs'
 
 const results=[{title:'Example source',snippet:'Acquired content',url:'https://example.org/source'}]
 const sample={query:'测试',searchedAt:'2026-01-01T00:00:00Z',searchUrl:'https://cn.bing.com/search?q=test',results,format:'text'}
-const config=normalizeConfig({cooldownMs:0})
+const config=normalizeConfig({cooldownMs:0,provider:'bing'})
 const image=b=>({type:'image',bytes:b.length})
 test('query is encoded and every call fetches again; shell-like text is inert',async()=>{
   let urls=[]

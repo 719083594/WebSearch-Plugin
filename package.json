@@ -1,6 +1,6 @@
 {
   "name": "websearch-plugin",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "框架独立的联网搜索Node API与JSON/文字/PNG命令行，提供云崽及可选Chaite适配。",
   "type": "module",
   "license": "PolyForm-Noncommercial-1.0.0",
@@ -22,7 +22,7 @@
   },
   "bin": {"web-search": "./cli.mjs"},
   "scripts": {
-    "test": "node --test tests/*.test.mjs",
+    "test": "node --test tests/*.test.mjs service/server.test.mjs",
     "diagnose": "node cli.mjs diagnose"
   },
   "files": [
@@ -35,6 +35,7 @@
     "config/plugin.example.json",
     "scripts",
     "integrations",
+    "service",
     "requirements.txt",
     "docs",
     "README.md",
