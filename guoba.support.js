@@ -9,7 +9,7 @@ export function supportGuoba() {
     pluginInfo: {
       name: path.basename(directory).toLowerCase(),
       title: '联网搜索',
-      author: '@719083594',
+      author: 'OrangeJuice',
       authorLink: 'https://github.com/719083594',
       link: 'https://github.com/719083594/WebSearch-Plugin',
       description: '通用联网搜索，提供文字、JSON和结果图；此处为云崽桥接。',
