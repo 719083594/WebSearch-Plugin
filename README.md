@@ -41,6 +41,12 @@ console.log(formatText(result, service.config))
 
 `api.mjs`、包默认导出和CLI始终不依赖机器人框架。根index默认也可直接导入，只有显式安装本地云崽标记后才加载桥接。每个service实例同时处理1次搜索，支持调用方AbortSignal。API不认识QQ权限，其他宿主需自己实现鉴权、冷却和消息发送。
 
+## 插件组合与入口
+
+供其他应用调用时，导入 `api.mjs` 或包默认导出。`createWebSearch()` 默认从本模块所在目录读取实例配置，搜索返回文字资料或图片内容，由外层应用决定发送方式。AI 调用时由 AI 汇总最终结果；直接使用 `#搜索` 时由搜索插件的命令适配器回复。两条入口各自处理对应命令，不应在一次 AI 调用中再进入机器人命令入口。
+
+`index.js` 是机器人加载入口；`integrations/chaite-tool.js` 和 `search-client.mjs` 是旧宿主的可选兼容适配，包含该宿主的事件或发送约定，通用应用应使用纯 API。搜索核心不依赖 AI、状态采集或 OrangeJuice。
+
 ## 云崽桥接
 
 在云崽根目录执行，安装器自身不要求当前目录为云崽：
