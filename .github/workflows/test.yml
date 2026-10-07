@@ -29,5 +29,5 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: node --test tests/*.test.mjs service/server.test.mjs
+      - run: node --test --test-concurrency=1 tests/*.test.mjs service/server.test.mjs
       - run: node cli.mjs diagnose
