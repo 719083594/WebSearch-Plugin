@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "hashAlgorithm": "sha256-lf-v1",
+  "cards": {
+    "search-help": [
+      {
+        "file": "resources/help/search-help-1.jpg",
+        "sha256": "58290af366d0c9561103cef59acfdedeefffdcbc474dc6de3599089414148bb8",
+        "width": 1080,
+        "height": 1041
+      }
+    ]
+  },
+  "sources": [
+    {
+      "file": "lib/help-content.mjs",
+      "sha256": "48a913c5e3720beb31df87da354fce6946805a2e786ecab32eaa49eccd2d28e3"
+    }
+  ]
+}
