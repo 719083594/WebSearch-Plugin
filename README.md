@@ -1,12 +1,35 @@
-<img src="resources/icon.png" width="72" height="72" alt="WebSearch-Plugin 图标">
-
 # WebSearch-Plugin · 通用联网搜索
+
+![WebSearch-Plugin：通用联网搜索](docs/images/hero.svg)
+
+**把搜索接进你的应用，把摘要和来源一起交给用户。** 独立 Node API 与 CLI，也可直接接入云崽。
+
+[效果预览](#效果预览) · [快速开始](#独立使用) · [Node API](#node-api) · [云崽桥接](#云崽桥接) · [完整安装](docs/INSTALL.md) · [安全说明](SECURITY.md)
+
+| 一份结果，三种输出 | 来源与关键词可追溯 | 接入方式自由选择 |
+| --- | --- | --- |
+| JSON 给程序，文字与 PNG 给用户；图片依赖缺失时回退文字。 | 保留完整查询、实际搜索引擎和原始链接；搜索失败明确报错。 | 纯 Node API / CLI 独立使用，或启用 Yunzai V3 桥接。 |
+
+## 效果预览
+
+![WebSearch 原生结果图的离线演示：标题、摘要、来源链接与北京时间](docs/images/showcase.png)
+
+> **离线演示数据。** 图中标题和摘要均为手工 fixture，链接使用示例域名和 IANA 资料入口；没有发起搜索，也不代表实时检索或事实验证。中间结果卡由项目现有 renderer 生成。
+
+<details>
+<summary>查看未经展示包装的原生结果图与复现方法</summary>
+
+![原生 renderer 输出，全部为手工合成示例](docs/images/search-result.png)
+
+安装 Pillow 和中文字体后，在仓库目录运行 `python scripts/generate-readme-demo.py`；可通过 `--font 字体路径` 指定字体。脚本仅使用内置演示数据，不读取实例配置，不访问网络。
+
+</details>
+
+### 接入与兼容
 
 框架独立的搜索组件，提供 **Node API、JSON/文字/PNG命令行**，以及现成的云崽V3桥接和可选Chaite工具。旧名为 `yunzai-web-search`；2.1.0默认有限换源，保留完整关键词、实际引擎和来源，拒绝明显只匹配问题开头词的偏题结果。
 
 管理面板显示为“联网搜索”。2.1.1 补齐用户提示与配置中文名称，图片和文字使用中文搜索源与北京时间；配置键、接口引擎标识和搜索来源保持兼容。新 AI 应用可直接通过[程序接口或认证服务](docs/AI-INTEGRATION.md)接入，不需要旧 GPT 插件。
-
-![离线合成示例，非实时搜索数据](docs/preview.jpg)
 
 ## 独立使用
 
